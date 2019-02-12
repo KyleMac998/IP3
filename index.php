@@ -27,13 +27,6 @@ Specifically:
     </ul>
   </div>
 </nav>
-
-<!DOCTYPE html>
-<!-- Constructing a set of buttons where each one make a different ajax request, each button associated with a specific URL.
-     Data feed URLs can be found on following page: https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php
-     Author: Peter Barrie
-     Date: 7 August 2018
--->
 <html>
     <style>
         * {
@@ -106,25 +99,56 @@ Specifically:
             display: inline-block;
             margin: 0 0 0.5em 0;
         }
+
+        /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+
+        #map {
+            top: -500px;
+            height: 70%;
+            width: 70%;
+        }
+
+        /* Optional settings. Do as you wish with these*/
+
+        html,
+        body {
+            height: 96%;
+            margin: 1%;
+            padding: 0;
+        }
+
+        #other {
+            height: auto;
+            width: 50%;
+        }
     </style>
 </head>
 
 <body>
+
     <div id='container'>
         <!-- On our web page, show a link to the earthquake data. This is just for learning purposes. -->
-        <h3 class="feed-heading">USGS Earthquakes</h3>
         <div id="feedColumn">
-            <p>Explore the
-                <a href="http://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php">USGS earthquake feed</a> using a set of buttons created at run-time.
-            </p>
             <div id="feedSelector"></div>
         </div>
     </div>
+    <div id="map"></div>
 
     <script>
+
+    var map;
+    //initMap() called when Google Maps API code is loaded - when web page is opened/refreshed
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 2,
+            center: new google.maps.LatLng(2.8, -187.3), // Center Map. Set this to any location that you like
+            mapTypeId: 'terrain' // can be any valid type
+        });
+    }
         //The following data is used when constructing buttons. You will have to extend this, based upon the feeds at: https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php
         var quakeFeeds = {
-            "past hour": {
+            "past hour" : {
                 "significant earthquakes": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_hour.geojson",
                 "all 4.5+": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_hour.geojson",
                 "all 2.5+": "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson",
@@ -183,23 +207,65 @@ Specifically:
         /* end construction of buttons */
 
         /* respond to a button press of any button of 'feed-name' class */
-        $('.feed-name').click(function (e) {
-            // We fetch the earthquake feed associated with the actual button that has been pressed.
-            // In this example we are not plotting on a map, just demonstrating how to get the data.
-            $.ajax({
-                url: $(e.target).data('feedurl'), // The GeoJSON URL associated with a specific button was stored in the button's properties when the button was created
 
-                success: function (data) {  // We've received the GeoJSON data
-                    var places = []; // We store the names of earthquake locations in this array
-                    $.each(data.features, function (key, val) {  // Just get a single value ('place') and save it in an array
-                        places.push(val.properties.place); // Add a new earthquake location to the array.
-                    });
-                    alert(places); // show all the places in an alert box
-                }
+        var map;
+        //initMap() called when Google Maps API code is loaded - when web page is opened/refreshed
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 2,
+                center: new google.maps.LatLng(2.8, -187.3), // Center Map. Set this to any location that you like
+                mapTypeId: 'terrain' // can be any valid type
             });
+        }
+
+        $(document).ready(function () {
+          $('.feed-name').click(function (e) {
+              // We fetch the earthquake feed associated with the actual button that has been pressed.
+              // In this example we are not plotting on a map, just demonstrating how to get the data.
+
+              // Set Google map  to its start state
+              map = new google.maps.Map(document.getElementById('map'), {
+                  zoom: 2,
+                  center: new google.maps.LatLng(2.8, -187.3), // Center Map. Set this to any location that you like
+                  mapTypeId: 'terrain' // can be any valid type
+              });
+
+              $.ajax({
+                  url: $(e.target).data('feedurl'), // The GeoJSON URL associated with a specific button was stored in the button's properties when the button was created
+                  success: function (data) {  // We've received the GeoJSON data
+                      i = 0;
+                      var markers = []; // We store the names of earthquake locations in this array
+                      $.each(data.features, function (key, val) {  // Just get a single value ('place') and save it in an array
+                      var coords = val.geometry.coordinates;
+                      var latLng = new google.maps.LatLng(coords[1], coords[0]);
+
+
+                      // Now create a new marker on the map
+                      var marker = new google.maps.Marker({
+                          position: latLng,
+                          map: map
+                      });
+                      markers[i++] = marker; // Add the marker to array to be used by clusterer
+
+                      });
+                      var markerCluster = new MarkerClusterer(map, markers,
+                          { imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m' });
+                  }
+              });
+          });
+
         });
 
 
+
+
+    </script>
+
+    <!-- Need the following code for clustering Google maps markers-->
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+    </script>
+    <!-- Need the following code for Google Maps. PLEASE INSERT YOUR OWN GOOGLE MAPS KEY BELOW -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDYDa0yOFJwOkLdW7fcpmXHtWDyXSZEHyI&callback=initMap">
     </script>
 
 </body>
