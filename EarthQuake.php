@@ -107,6 +107,7 @@ Specifically:
             top: -500px;
             height: 70%;
             width: 70%;
+            float: right;
         }
 
         /* Optional settings. Do as you wish with these*/
@@ -234,7 +235,7 @@ Specifically:
                   url: $(e.target).data('feedurl'), // The GeoJSON URL associated with a specific button was stored in the button's properties when the button was created
                   success: function (data) {  // We've received the GeoJSON data
                       i = 0;
-                      var markers = []; // We store the names of earthquake locations in this array
+                      var markers = []; // We store markers in array
                       $.each(data.features, function (key, val) {  // Just get a single value ('place') and save it in an array
                       var coords = val.geometry.coordinates;
                       var latLng = new google.maps.LatLng(coords[1], coords[0]);
@@ -244,10 +245,10 @@ Specifically:
                       var marker = new google.maps.Marker({
                           position: latLng,
                           map: map,
-                    
+
                       });
                       var infowindow = new google.maps.InfoWindow({
-                          content: "<h3>" + val.properties.title + "</h3><p><a href='" + val.properties.url + "'>Details</a></p>"
+                          content: "<h3>" + val.properties.title + "</h3><p><a href='" + val.properties.url + "' target=_blank>Details</a></p>"
                       });
                       marker.addListener('click', function (data) {
                           infowindow.open(map, marker); // Open the Google maps marker infoWindow
@@ -263,10 +264,6 @@ Specifically:
           });
 
         });
-
-
-
-
     </script>
 
     <!-- Need the following code for clustering Google maps markers-->
